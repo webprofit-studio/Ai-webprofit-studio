@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebProfit AI</title>
+
+<style>
+body { margin:0; font-family:Arial; background:#0f172a; color:white; }
+header { text-align:center; padding:20px; background:black; }
+.container { max-width:500px; margin:auto; padding:20px; }
+input, textarea, button {
+  width:100%; padding:12px; margin:8px 0;
+  border:none; border-radius:8px;
+}
+button { background:#7c3aed; color:white; font-weight:bold; }
+.dashboard { display:none; }
+.card { background:#020617; padding:15px; border-radius:10px; margin-top:15px; }
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🚀 WebProfit AI</h1>
+<p>Crée. Publie. Gagne de l'argent.</p>
+</header>
+
+<div class="container" id="auth">
+<h2>Connexion / Inscription</h2>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Mot de passe">
+<button onclick="register()">S'inscrire</button>
+<button onclick="login()">Se connecter</button>
+</div>
+
+<div class="container dashboard" id="dashboard">
+<h2>Bienvenue 👋</h2>
+
+<div class="card">
+<h3>🤖 IA WebProfit</h3>
+<textarea id="prompt" placeholder="Ex: Je vends des chaussures à Abidjan"></textarea>
+<button onclick="generate()">Générer</button>
+<p id="result"></p>
+</div>
+
+<button onclick="logout()">Se déconnecter</button>
+</div>
+
+<script type="module">
+// FIREBASE IMPORT
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+// CONFIG FIREBASE
+const firebaseConfig = {
+  apiKey: "TON_API_KEY_FIREBASE",
+  authDomain: "TON_PROJECT_ID.firebaseapp.com",
+  projectId: "TON_PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// INSCRIPTION
+window.register = async function() {
+  try {
+    await createUserWithEmailAndPassword(auth, email.value, password.value);
+    alert("Compte créé !");
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+// CONNEXION
+window.login = async function() {
+  try {
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+    document.getElementById("auth").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+// LOGOUT
+window.logout = async function() {
+  await signOut(auth);
+  location.reload();
+};
+
+// IA OPENAI
+window.generate = async function() {
+  let userInput = document.getElementById("prompt").value;
+
+  let response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer TA_CLE_OPENAI"
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "Tu es une IA business africaine experte en marketing, création de site et génération de revenus."
+        },
+        {
+          role: "user",
+          content: userInput
+        }
+      ]
+    })
+  });
+
+  let data = await response.json();
+
+  document.getElementById("result").innerText =
+    data.choices[0].message.content;
+};
+
+</script>
+
+</body>
+</html>
